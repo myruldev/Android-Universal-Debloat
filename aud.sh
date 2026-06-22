@@ -98,7 +98,7 @@ check_update() {
     echo -e "${C_KUNING}┌──────────────────────────────────────────────┐${C_RESET}"
     echo -e "${C_KUNING}│         PEMBARUAN TERSEDIA DI GITHUB!        │${C_RESET}"
     echo -e "${C_KUNING}├──────────────────────────────────────────────┤${C_RESET}"
-    echo -e "${C_KUNING}│  Ada versi baru yang tersedia untuk diunduh.  │${C_RESET}"
+    echo -e "${C_KUNING}│  Ada versi baru yang tersedia untuk diunduh. │${C_RESET}"
     echo -e "${C_KUNING}└──────────────────────────────────────────────┘${C_RESET}"
     echo
     read -r -p "Update otomatis sekarang? (y/n): " confirm
