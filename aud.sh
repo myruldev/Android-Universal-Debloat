@@ -97,7 +97,7 @@ judul() {
 
 tekan_enter() {
   echo
-  echo -ne "${C_ABU}Tekan ENTER untuk kembali ke menu...${C_RESET}"
+  echo -ne "${C_ABU}Tekan Enter untuk kembali ke menu...${C_RESET}"
   read -r _
 }
 
@@ -275,7 +275,7 @@ menu_scan_hp() {
   garis
   echo -e "${C_BIRU}Aplikasi bawaan yang dikenali dan masih terpasang:${C_RESET}"
   echo
-  printf "  %-45s %-22s %s\n" "PAKET" "NAMA" "RISIKO"
+  printf "  %-45s %-22s %s\n" "Paket" "Nama Aplikasi" "Risiko"
   garis
   local total_kenal=0
   while IFS='|' read -r pkg nama risk; do
@@ -288,7 +288,7 @@ menu_scan_hp() {
   done < <(baca_semua_database)
   garis
   echo -e "  Dikenali & terpasang: ${C_HIJAU}${total_kenal}${C_RESET} aplikasi"
-  log_aksi "SCAN HP: $jumlah paket terpasang, $total_kenal dikenali database"
+  log_aksi "Scan HP: $jumlah paket terpasang, $total_kenal dikenali database"
   tekan_enter
 }
 
@@ -351,28 +351,28 @@ buat_backup() {
 disable_paket() {
   local pkg="$1"
   if ada_di_whitelist "$pkg"; then
-    echo -e "  ${C_KUNING}[LEWATI]${C_RESET} $pkg (paket penting, dilindungi)"
-    log_aksi "LEWATI (whitelist): $pkg"
+    echo -e "  ${C_KUNING}• Skip (dilindungi):${C_RESET} $pkg"
+    log_aksi "Skip (whitelist): $pkg"
     return 1
   fi
   if ! paket_terpasang "$pkg"; then
-    echo -e "  ${C_ABU}[-]${C_RESET}      $pkg (tidak terpasang)"
+    echo -e "  ${C_ABU}• Skip (tidak ada):${C_RESET} $pkg"
     return 1
   fi
   if [ "$DRY_RUN" -eq 1 ]; then
-    echo -e "  ${C_KUNING}[SIMULASI]${C_RESET} $pkg akan dinonaktifkan (tidak dieksekusi)"
-    log_aksi "SIMULASI DISABLE: $pkg"
+    echo -e "  ${C_KUNING}• Simulasi disable:${C_RESET} $pkg"
+    log_aksi "Simulasi disable: $pkg"
     return 0
   fi
   local out
   out="$(rish_run "pm disable-user --user $USER_ID $pkg" 2>&1)"
   if echo "$out" | grep -qi "new state\|disabled"; then
-    echo -e "  ${C_HIJAU}[NONAKTIF]${C_RESET} $pkg"
-    log_aksi "DISABLE: $pkg -> OK"
+    echo -e "  ${C_HIJAU}• Berhasil disable:${C_RESET} $pkg"
+    log_aksi "Disable: $pkg -> OK"
     return 0
   else
-    echo -e "  ${C_MERAH}[GAGAL]${C_RESET}  $pkg ($out)"
-    log_aksi "DISABLE: $pkg -> GAGAL ($out)"
+    echo -e "  ${C_MERAH}• Gagal disable:${C_RESET} $pkg ($out)"
+    log_aksi "Disable: $pkg -> GAGAL ($out)"
     return 1
   fi
 }
@@ -380,19 +380,19 @@ disable_paket() {
 enable_paket() {
   local pkg="$1"
   if [ "$DRY_RUN" -eq 1 ]; then
-    echo -e "  ${C_KUNING}[SIMULASI]${C_RESET} $pkg akan diaktifkan (tidak dieksekusi)"
-    log_aksi "SIMULASI ENABLE: $pkg"
+    echo -e "  ${C_KUNING}• Simulasi enable:${C_RESET} $pkg"
+    log_aksi "Simulasi enable: $pkg"
     return 0
   fi
   local out
   out="$(rish_run "pm enable $pkg" 2>&1)"
   if echo "$out" | grep -qi "new state\|enabled"; then
-    echo -e "  ${C_HIJAU}[AKTIF]${C_RESET}  $pkg"
-    log_aksi "ENABLE: $pkg -> OK"
+    echo -e "  ${C_HIJAU}• Berhasil enable:${C_RESET} $pkg"
+    log_aksi "Enable: $pkg -> OK"
     return 0
   else
-    echo -e "  ${C_MERAH}[GAGAL]${C_RESET} $pkg ($out)"
-    log_aksi "ENABLE: $pkg -> GAGAL ($out)"
+    echo -e "  ${C_MERAH}• Gagal enable:${C_RESET} $pkg ($out)"
+    log_aksi "Enable: $pkg -> GAGAL ($out)"
     return 1
   fi
 }
@@ -435,8 +435,8 @@ proses_debloat() {
     printf "  - %-22s ${C_ABU}(%s, %s)${C_RESET}\n" "$nama" "$pkg" "$risk"
   done
   garis
-  echo -e "${C_KUNING}Catatan: Aplikasi hanya DINONAKTIFKAN, bukan dihapus.${C_RESET}"
-  echo -e "${C_KUNING}Kamu bisa mengembalikannya lewat menu 'Pulihkan Aplikasi'.${C_RESET}"
+  echo -e "${C_KUNING}Catatan: Aplikasi hanya dinonaktifkan (disable-user), bukan dihapus permanen.${C_RESET}"
+  echo -e "${C_KUNING}Kamu bisa mengaktifkannya kembali kapan saja lewat menu 'Pulihkan Aplikasi'.${C_RESET}"
 
   if ! konfirmasi "Yakin lanjut?"; then
     echo -e "${C_ABU}Dibatalkan. Tidak ada yang diubah.${C_RESET}"
@@ -445,22 +445,22 @@ proses_debloat() {
   fi
 
   echo
-  echo -e "${C_BIRU}Membuat cadangan dulu...${C_RESET}"
+  echo -e "${C_BIRU}[INFO] Membuat cadangan daftar aplikasi...${C_RESET}"
   local bk
   bk="$(buat_backup)"
-  echo -e "  Cadangan disimpan: ${C_HIJAU}$bk${C_RESET}"
-  log_aksi "BACKUP dibuat: $bk (mode: $judul_mode)"
+  echo -e "  • Cadangan disimpan: ${C_HIJAU}$bk${C_RESET}"
+  log_aksi "Backup dibuat: $bk (mode: $judul_mode)"
 
   echo
-  echo -e "${C_BIRU}Memproses...${C_RESET}"
+  echo -e "${C_BIRU}[INFO] Sedang memproses...${C_RESET}"
   local sukses=0
   for item in "${kandidat[@]}"; do
     IFS='|' read -r pkg nama risk <<< "$item"
     disable_paket "$pkg" && sukses=$((sukses+1))
   done
   garis
-  echo -e "${C_HIJAU}Selesai. $sukses aplikasi berhasil dinonaktifkan.${C_RESET}"
-  log_aksi "MODE $judul_mode selesai: $sukses dinonaktifkan"
+  echo -e "${C_HIJAU}[DONE] Selesai. $sukses aplikasi dinonaktifkan.${C_RESET}"
+  log_aksi "Mode $judul_mode selesai: $sukses dinonaktifkan"
   tekan_enter
 }
 
@@ -496,13 +496,13 @@ menu_manual_debloat() {
   done < <(baca_semua_database)
 
   if [ "${#kandidat[@]}" -eq 0 ]; then
-    echo -e "${C_KUNING}Tidak ada aplikasi bawaan yang dikenali untuk dipilih.${C_RESET}"
+    echo -e "${C_KUNING}Tidak ada aplikasi bawaan yang cocok untuk dipilih.${C_RESET}"
     tekan_enter
     return
   fi
 
-  echo -e "${C_BIRU}Daftar aplikasi (ketik nomor yang ingin dinonaktifkan):${C_RESET}"
-  echo -e "${C_ABU}Pisahkan dengan spasi. Contoh: 1 3 5${C_RESET}"
+  echo -e "${C_BIRU}Pilih aplikasi yang ingin dinonaktifkan (ketik nomornya):${C_RESET}"
+  echo -e "${C_ABU}Pisahkan dengan spasi, contoh: 1 3 5${C_RESET}"
   echo
   local i=1
   for item in "${kandidat[@]}"; do
@@ -513,7 +513,7 @@ menu_manual_debloat() {
   garis
   echo -ne "${C_KUNING}Nomor pilihan (kosongkan untuk batal): ${C_RESET}"
   read -r pilihan
-  [ -z "$pilihan" ] && { echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; }
+  [ -z "$pilihan" ] && { echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; }
 
   local terpilih=()
   for n in $pilihan; do
@@ -526,13 +526,13 @@ menu_manual_debloat() {
   done
 
   if [ "${#terpilih[@]}" -eq 0 ]; then
-    echo -e "${C_ABU}Tidak ada pilihan yang valid. Dibatalkan.${C_RESET}"
+    echo -e "${C_ABU}Pilihan tidak valid. Dibatalkan.${C_RESET}"
     tekan_enter
     return
   fi
 
   echo
-  echo -e "${C_BIRU}Akan dinonaktifkan:${C_RESET}"
+  echo -e "${C_BIRU}Aplikasi terpilih:${C_RESET}"
   for item in "${terpilih[@]}"; do
     IFS='|' read -r pkg nama risk <<< "$item"
     printf "  - %-22s ${C_ABU}(%s, %s)${C_RESET}\n" "$nama" "$pkg" "$risk"
@@ -544,8 +544,8 @@ menu_manual_debloat() {
 
   local bk
   bk="$(buat_backup)"
-  echo -e "  Cadangan disimpan: ${C_HIJAU}$bk${C_RESET}"
-  log_aksi "BACKUP (manual): $bk"
+  echo -e "  • Cadangan disimpan: ${C_HIJAU}$bk${C_RESET}"
+  log_aksi "Backup (manual): $bk"
 
   echo
   local sukses=0
@@ -554,8 +554,8 @@ menu_manual_debloat() {
     disable_paket "$pkg" && sukses=$((sukses+1))
   done
   garis
-  echo -e "${C_HIJAU}Selesai. $sukses aplikasi dinonaktifkan.${C_RESET}"
-  log_aksi "MANUAL selesai: $sukses dinonaktifkan"
+  echo -e "${C_HIJAU}[DONE] Selesai. $sukses aplikasi dinonaktifkan.${C_RESET}"
+  log_aksi "Manual selesai: $sukses dinonaktifkan"
   tekan_enter
 }
 
@@ -593,16 +593,16 @@ menu_restore() {
       local sukses=0
       for p in "${pkgs[@]}"; do enable_paket "$p" && sukses=$((sukses+1)); done
       garis
-      echo -e "${C_HIJAU}Selesai. $sukses aplikasi diaktifkan kembali.${C_RESET}"
-      log_aksi "RESTORE semua: $sukses diaktifkan"
+      echo -e "${C_HIJAU}[DONE] Selesai. $sukses aplikasi diaktifkan kembali.${C_RESET}"
+      log_aksi "Restore semua: $sukses diaktifkan"
       ;;
     2)
       echo
       echo -ne "${C_KUNING}Ketik nama paket (mis: com.contoh.app): ${C_RESET}"
       read -r pkg
       pkg="$(echo "$pkg" | tr -d ' \r')"
-      [ -z "$pkg" ] && { echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; }
-      if ! konfirmasi "Aktifkan kembali $pkg?"; then echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; fi
+      [ -z "$pkg" ] && { echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; }
+      if ! konfirmasi "Aktifkan kembali $pkg?"; then echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; fi
       echo
       enable_paket "$pkg"
       ;;
@@ -620,14 +620,14 @@ menu_restore() {
       done
       echo -ne "${C_KUNING}Pilih nomor cadangan: ${C_RESET}"
       read -r n
-      case "$n" in ''|*[!0-9]*) echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return ;; esac
+      case "$n" in ''|*[!0-9]*) echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return ;; esac
       if [ "$n" -lt 1 ] || [ "$n" -gt "${#files[@]}" ]; then
         echo -e "${C_ABU}Pilihan tidak valid.${C_RESET}"; tekan_enter; return
       fi
       local file="${files[$((n-1))]}"
       echo -e "${C_BIRU}Memulihkan dari: $(basename "$file")${C_RESET}"
-      echo -e "${C_ABU}Catatan: hanya mengaktifkan paket yang ada di cadangan.${C_RESET}"
-      if ! konfirmasi "Yakin lanjut?"; then echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; fi
+      echo -e "${C_ABU}Catatan: Hanya mengaktifkan kembali paket yang terdaftar di dalam cadangan.${C_RESET}"
+      if ! konfirmasi "Yakin lanjut?"; then echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; fi
       echo
       local sukses=0
       while read -r pkg; do
@@ -637,8 +637,8 @@ menu_restore() {
         enable_paket "$pkg" && sukses=$((sukses+1))
       done < "$file"
       garis
-      echo -e "${C_HIJAU}Selesai. $sukses aplikasi diaktifkan kembali.${C_RESET}"
-      log_aksi "RESTORE dari $file: $sukses diaktifkan"
+      echo -e "${C_HIJAU}[DONE] Selesai. $sukses aplikasi diaktifkan kembali.${C_RESET}"
+      log_aksi "Restore dari $file: $sukses diaktifkan"
       ;;
     *) return ;;
   esac
@@ -657,9 +657,9 @@ menu_backup() {
   bk="$(buat_backup)"
   local jumlah
   jumlah="$(grep -vc '^#' "$bk")"
-  echo -e "  Tersimpan: ${C_HIJAU}$bk${C_RESET}"
-  echo -e "  Jumlah paket tercatat: ${C_HIJAU}$jumlah${C_RESET}"
-  log_aksi "BACKUP manual dibuat: $bk ($jumlah paket)"
+  echo -e "  • Cadangan disimpan: ${C_HIJAU}$bk${C_RESET}"
+  echo -e "  • Jumlah paket tercatat: ${C_HIJAU}$jumlah${C_RESET}"
+  log_aksi "Backup manual dibuat: $bk ($jumlah paket)"
   tekan_enter
 }
 
@@ -698,7 +698,7 @@ menu_cek_status() {
   terpasang="$(scan_paket_terpasang)"
 
   local jml_off=0 jml_on=0
-  printf "  %-45s %s\n" "PAKET" "STATUS"
+  printf "  %-45s %s\n" "Nama Paket" "Status"
   garis
   while IFS='|' read -r pkg nama risk; do
     pkg="$(echo "$pkg" | tr -d ' \r')"
@@ -706,7 +706,7 @@ menu_cek_status() {
     case "$pkg" in \#*) continue ;; esac
     echo "$terpasang" | grep -qx "$pkg" || continue
     if echo "$nonaktif" | grep -qx "$pkg"; then
-      printf "  %-45s ${C_KUNING}%s${C_RESET}\n" "$pkg" "NONAKTIF"
+      printf "  %-45s ${C_KUNING}%s${C_RESET}\n" "$pkg" "nonaktif"
       jml_off=$((jml_off+1))
     else
       printf "  %-45s ${C_HIJAU}%s${C_RESET}\n" "$pkg" "aktif"
@@ -714,8 +714,8 @@ menu_cek_status() {
     fi
   done < <(baca_semua_database)
   garis
-  echo -e "  Sudah dinonaktifkan: ${C_KUNING}${jml_off}${C_RESET}   |   Masih aktif: ${C_HIJAU}${jml_on}${C_RESET}"
-  log_aksi "CEK STATUS: $jml_off nonaktif, $jml_on aktif"
+  echo -e "  • Sudah dinonaktifkan: ${C_KUNING}${jml_off}${C_RESET}   |   • Masih aktif: ${C_HIJAU}${jml_on}${C_RESET}"
+  log_aksi "Cek status: $jml_off nonaktif, $jml_on aktif"
   tekan_enter
 }
 
@@ -732,7 +732,7 @@ menu_cari() {
   echo -ne "${C_KUNING}Kata kunci: ${C_RESET}"
   read -r kw
   kw="$(echo "$kw" | tr '[:upper:]' '[:lower:]' | tr -d '\r')"
-  [ -z "$kw" ] && { echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; }
+  [ -z "$kw" ] && { echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; }
 
   deteksi_device
   local terpasang hasil=()
@@ -763,22 +763,25 @@ menu_cari() {
   garis
   echo -ne "${C_KUNING}Nomor yang ingin dinonaktifkan (spasi, kosong=batal): ${C_RESET}"
   read -r pilihan
-  [ -z "$pilihan" ] && { echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; }
+  [ -z "$pilihan" ] && { echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; }
 
   local terpilih=()
   for n in $pilihan; do
     case "$n" in ''|*[!0-9]*) continue ;; esac
     [ "$n" -ge 1 ] && [ "$n" -le "${#hasil[@]}" ] && terpilih+=("${hasil[$((n-1))]}")
   done
-  [ "${#terpilih[@]}" -eq 0 ] && { echo -e "${C_ABU}Tidak ada pilihan valid.${C_RESET}"; tekan_enter; return; }
+  [ "${#terpilih[@]}" -eq 0 ] && { echo -e "${C_ABU}Pilihan tidak valid.${C_RESET}"; tekan_enter; return; }
 
   echo
   for item in "${terpilih[@]}"; do
     IFS='|' read -r pkg nama risk <<< "$item"
     printf "  - %-22s ${C_ABU}(%s)${C_RESET}\n" "$nama" "$pkg"
   done
-  if ! konfirmasi "Yakin lanjut?"; then echo -e "${C_ABU}Dibatalkan.${C_RESET}"; tekan_enter; return; fi
-  local bk; bk="$(buat_backup)"; echo -e "  Cadangan: ${C_HIJAU}$bk${C_RESET}"; log_aksi "BACKUP (cari): $bk"
+  if ! konfirmasi "Yakin lanjut?"; then echo -e "${C_ABU}Dibatalkan${C_RESET}"; tekan_enter; return; fi
+  local bk
+  bk="$(buat_backup)"
+  echo -e "  • Cadangan disimpan: ${C_HIJAU}$bk${C_RESET}"
+  log_aksi "Backup (cari): $bk"
   echo
   local sukses=0
   for item in "${terpilih[@]}"; do
@@ -786,8 +789,8 @@ menu_cari() {
     disable_paket "$pkg" && sukses=$((sukses+1))
   done
   garis
-  echo -e "${C_HIJAU}Selesai. $sukses aplikasi diproses.${C_RESET}"
-  log_aksi "CARI selesai: $sukses diproses"
+  echo -e "${C_HIJAU}[DONE] Selesai. $sukses aplikasi diproses.${C_RESET}"
+  log_aksi "Cari selesai: $sukses diproses"
   tekan_enter
 }
 
@@ -800,8 +803,8 @@ menu_tak_dikenal() {
   if ! cek_dependency; then tekan_enter; return; fi
   garis
   deteksi_device
-  echo -e "${C_BIRU}Aplikasi terpasang yang BELUM ada di database${C_RESET}"
-  echo -e "${C_ABU}Hanya menampilkan aplikasi pihak ketiga (non-android inti).${C_RESET}"
+  echo -e "${C_BIRU}Aplikasi terpasang yang belum ada di database${C_RESET}"
+  echo -e "${C_ABU}Hanya menampilkan aplikasi pihak ketiga (non-sistem inti).${C_RESET}"
   garis
 
   # daftar paket yang dikenal database
@@ -831,10 +834,10 @@ menu_tak_dikenal() {
   done <<< "$terpasang"
 
   garis
-  echo -e "  Total belum dikenal: ${C_HIJAU}${jml}${C_RESET}"
-  echo -e "  Daftar disimpan ke: ${C_HIJAU}$out${C_RESET}"
+  echo -e "  • Total belum dikenal: ${C_HIJAU}${jml}${C_RESET}"
+  echo -e "  • Daftar disimpan ke: ${C_HIJAU}$out${C_RESET}"
   echo -e "${C_ABU}Kamu bisa edit file itu lalu salin barisnya ke database merek.${C_RESET}"
-  log_aksi "TAK DIKENAL: $jml paket, disimpan $out"
+  log_aksi "Tak dikenal: $jml paket, disimpan $out"
   tekan_enter
 }
 
@@ -844,10 +847,10 @@ menu_tak_dikenal() {
 toggle_simulasi() {
   if [ "$DRY_RUN" -eq 1 ]; then
     DRY_RUN=0
-    echo -e "${C_HIJAU}Mode Simulasi DIMATIKAN. Aksi akan benar-benar dijalankan.${C_RESET}"
+    echo -e "${C_HIJAU}Mode simulasi dimatikan. Aksi akan benar-benar dijalankan.${C_RESET}"
   else
     DRY_RUN=1
-    echo -e "${C_KUNING}Mode Simulasi DINYALAKAN. Aksi hanya pura-pura (aman untuk coba-coba).${C_RESET}"
+    echo -e "${C_KUNING}Mode simulasi dinyalakan. Aksi hanya pura-pura (aman untuk coba-coba).${C_RESET}"
   fi
   log_aksi "Mode simulasi diubah -> DRY_RUN=$DRY_RUN"
   sleep 1
@@ -860,21 +863,21 @@ menu_utama() {
   while true; do
     judul
     if [ "$DRY_RUN" -eq 1 ]; then
-      echo -e "${C_KUNING}>> MODE SIMULASI AKTIF (tidak ada perubahan nyata) <<${C_RESET}\n"
+      echo -e "${C_KUNING}>> Mode simulasi aktif (tidak ada perubahan nyata) <<${C_RESET}\n"
     fi
-    echo -e "${C_BIRU}Pilih menu (ketik nomor lalu ENTER):${C_RESET}"
+    echo -e "${C_BIRU}Pilih menu (ketik nomor lalu tekan Enter):${C_RESET}"
     echo
     echo "   1) Periksa HP (scan)"
-    echo "   2) Debloat Aman"
-    echo "   3) Debloat Disarankan"
-    echo "   4) Pilih Sendiri (Manual)"
-    echo "   5) Cari Aplikasi"
-    echo "   6) Cek Status Debloat"
-    echo "   7) Aplikasi Tak Dikenal (bantu lengkapi database)"
-    echo "   8) Pulihkan Aplikasi"
-    echo "   9) Cadangkan Daftar Aplikasi"
-    echo "  10) Lihat Catatan Aktivitas"
-    echo "  11) Mode Simulasi (on/off)"
+    echo "   2) Debloat aman (hanya risiko safe)"
+    echo "   3) Debloat disarankan (safe + recommended)"
+    echo "   4) Pilih sendiri (manual)"
+    echo "   5) Cari aplikasi"
+    echo "   6) Cek status debloat"
+    echo "   7) Aplikasi tak dikenal (bantu lengkapi database)"
+    echo "   8) Pulihkan aplikasi (restore)"
+    echo "   9) Cadangkan daftar aplikasi (backup)"
+    echo "  10) Lihat catatan aktivitas (log)"
+    echo "  11) Mode simulasi (on/off)"
     echo "   0) Keluar"
     echo
     echo -ne "${C_KUNING}Pilihan kamu: ${C_RESET}"
