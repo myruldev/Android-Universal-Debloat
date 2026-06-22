@@ -100,11 +100,11 @@ check_update() {
 
   if [ -n "$local_sha" ] && [ -n "$remote_sha" ] && [ "$local_sha" != "$remote_sha" ]; then
     echo
-    echo -e "${C_KUNING}┌──────────────────────────────────────────────┐${C_RESET}"
-    echo -e "${C_KUNING}│         PEMBARUAN TERSEDIA DI GITHUB!        │${C_RESET}"
-    echo -e "${C_KUNING}├──────────────────────────────────────────────┤${C_RESET}"
-    echo -e "${C_KUNING}│  Ada versi baru yang tersedia untuk diunduh. │${C_RESET}"
-    echo -e "${C_KUNING}└──────────────────────────────────────────────┘${C_RESET}"
+    echo -e "${C_KUNING}  ┌──────────────────────────────────────────────┐${C_RESET}"
+    echo -e "${C_KUNING}  │         Pembaruan Tersedia Di Github!        │${C_RESET}"
+    echo -e "${C_KUNING}  ├──────────────────────────────────────────────┤${C_RESET}"
+    echo -e "${C_KUNING}  │  Ada versi baru yang tersedia untuk diunduh. │${C_RESET}"
+    echo -e "${C_KUNING}  └──────────────────────────────────────────────┘${C_RESET}"
     echo
     read -r -p "Update otomatis sekarang? (y/n): " confirm
     if [[ "$confirm" =~ ^[Yy]$ ]]; then
