@@ -73,6 +73,48 @@ log_aksi() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $pesan" >> "$LOG_FILE"
 }
 
+check_update() {
+  # Cek apakah folder ini git repo
+  if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return 0
+  fi
+
+  # Cek koneksi internet ke github (timeout 2 detik)
+  if ! ping -c 1 -W 2 github.com >/dev/null 2>&1; then
+    # Jika ping gagal, coba fetch dengan timeout config
+    if ! git -c network.http.connectionTimeout=2 fetch origin >/dev/null 2>&1; then
+      return 0
+    fi
+  else
+    git fetch origin >/dev/null 2>&1 || return 0
+  fi
+
+  local_sha="$(git rev-parse HEAD 2>/dev/null)"
+  remote_sha="$(git rev-parse @{u} 2>/dev/null)"
+
+  if [ -n "$local_sha" ] && [ -n "$remote_sha" ] && [ "$local_sha" != "$remote_sha" ]; then
+    echo
+    echo -e "${C_KUNING}┌──────────────────────────────────────────────┐${C_RESET}"
+    echo -e "${C_KUNING}│         PEMBARUAN TERSEDIA DI GITHUB!        │${C_RESET}"
+    echo -e "${C_KUNING}├──────────────────────────────────────────────┤${C_RESET}"
+    echo -e "${C_KUNING}│  Ada versi baru yang tersedia untuk diunduh.  │${C_RESET}"
+    echo -e "${C_KUNING}└──────────────────────────────────────────────┘${C_RESET}"
+    echo
+    read -r -p "Update otomatis sekarang? (y/n): " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+      echo "Mengunduh pembaruan..."
+      if git pull origin main >/dev/null 2>&1 || git pull >/dev/null 2>&1; then
+        echo -e "${C_HIJAU}Update sukses! Memulai ulang script...${C_RESET}"
+        sleep 1
+        exec bash "$0" "$@"
+      else
+        echo -e "${C_MERAH}Gagal melakukan git pull. Silakan update manual.${C_RESET}"
+        sleep 2
+      fi
+    fi
+  fi
+}
+
 garis() {
   echo -e "${C_ABU}------------------------------${C_RESET}"
 }
@@ -940,6 +982,7 @@ menu_utama() {
 # ============================================================
 log_aksi "Aplikasi dijalankan"
 judul
+check_update "$@"
 ketik "   Menyalakan AUD..." 0.02
 loading "Cek perlengkapan"
 sleep 0.2
