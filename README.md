@@ -158,7 +158,7 @@ android-universal-debloat/
 
 | Menu Utama | Debloat Aman |
 |---|---|
-| `screenshots/menu.png` | `screenshots/debloat.png` |
+| `screenshots/menu.jpg` | `screenshots/debloat.jpg` |
 
 ---
 
