@@ -157,8 +157,8 @@ android-universal-debloat/
 > Taruh gambar di folder `screenshots/` lalu tampilkan di sini.
 
 | Menu Utama | Debloat Aman |
-|---|---|
-| `screenshots/menu.jpg` | `screenshots/debloat.jpg` |
+|------------|--------------|
+| ![](screenshots/menu.jpg) | ![](screenshots/debloat.jpg) |
 
 ---
 
